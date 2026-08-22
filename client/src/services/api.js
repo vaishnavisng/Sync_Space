@@ -19,7 +19,7 @@ async function request(url, options = {}) {
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  const timeout = setTimeout(() => controller.abort(), 30000);
   try {
     return await fetch(url, { ...options, headers, signal: controller.signal });
   } catch (error) {

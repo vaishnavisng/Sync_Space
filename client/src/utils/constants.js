@@ -1,5 +1,16 @@
-export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
-export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+function normalizeApiUrl(raw) {
+  if (!raw) return "http://localhost:5000/api";
+  const cleaned = raw.trim().replace(/\/$/, "");
+  return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+function normalizeSocketUrl(raw) {
+  if (!raw) return "http://localhost:5000";
+  return raw.trim().replace(/\/$/, "");
+}
+
+export const SOCKET_URL = normalizeSocketUrl(import.meta.env.VITE_SOCKET_URL);
+export const API_BASE_URL = normalizeApiUrl(import.meta.env.VITE_API_URL);
 
 // Must match the event names emitted/listened to in sockets/roomHandler.js
 // and sockets/yjsHandler.js on the backend.
