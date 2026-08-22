@@ -47,6 +47,13 @@ EMAIL_USER=your_smtp_email
 EMAIL_PASS=your_smtp_app_password
 PORT=5000
 
+For Gmail, `EMAIL_USER` must be the complete Gmail address and `EMAIL_PASS` must
+be a Google **App Password** (not the normal Gmail password). Enable two-step
+verification for that Gmail account, then create an App Password in the Google
+Account security settings. If the app is deployed somewhere that blocks SMTP
+ports (including Render's free tier), configure `RESEND_API_KEY` and a verified
+`EMAIL_FROM` sender instead; the email provider API uses HTTPS.
+
 (Optional) seed a dev user to skip the signup/OTP flow while testing:
 
 #bash

@@ -11,7 +11,16 @@ const OTP_TTL_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
 
 function generateOtp() {
-  return crypto.randomInt(100000, 999999).toString();
+  return crypto.randomInt(100000, 1_000_000).toString();
+}
+
+function sendEmailError(res, err) {
+  if (err.code === "EMAIL_NOT_CONFIGURED" || err.code === "EMAIL_DELIVERY_FAILED") {
+    return res.status(503).json({
+      error: "Verification email could not be delivered. Please try again later.",
+    });
+  }
+  return null;
 }
 
 router.post("/login", async (req, res) => {
@@ -90,6 +99,7 @@ router.post("/signup", async (req, res) => {
     res.status(201).json({ message: "OTP sent to email", email });
   } catch (err) {
     console.error("Signup error:", err.message);
+    if (sendEmailError(res, err)) return;
     res.status(500).json({ error: "Server error during signup" });
   }
 });
@@ -128,14 +138,14 @@ router.post("/resend-otp", async (req, res) => {
     if (user.isVerified) return res.status(400).json({ error: "Already verified" });
 
     const otp = generateOtp();
+    await sendOtpEmail(email, otp);
     user.otp = otp;
     user.otpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
     await user.save();
-
-    await sendOtpEmail(email, otp);
     res.json({ message: "OTP resent" });
   } catch (err) {
     console.error("Resend OTP error:", err.message);
+    if (sendEmailError(res, err)) return;
     res.status(500).json({ error: "Server error resending OTP" });
   }
 });
@@ -155,14 +165,14 @@ router.post("/forgot-password", async (req, res) => {
     }
 
     const otp = generateOtp();
+    await sendOtpEmail(email, otp);
     user.otp = otp;
     user.otpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
     await user.save();
-
-    await sendOtpEmail(email, otp);
     res.json({ message: "Reset code sent to email" });
   } catch (err) {
     console.error("Forgot password error:", err.message);
+    if (sendEmailError(res, err)) return;
     res.status(500).json({ error: "Server error" });
   }
 });

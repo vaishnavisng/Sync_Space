@@ -15,6 +15,10 @@ function isPlaceholderCredential(val) {
   );
 }
 
+function isValidEmailAddress(val) {
+  return typeof val === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+}
+
 // Support Resend HTTPS API (Port 443 - 100% works on Render free tier without SMTP restrictions)
 async function sendViaResend(toEmail, otp) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
@@ -145,14 +149,10 @@ async function sendOtpEmail(toEmail, otp) {
   const pass = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
 
   // Fallback for unconfigured or placeholder credentials in local/dev setup
-  if (isPlaceholderCredential(user) || isPlaceholderCredential(pass)) {
-    console.log(`\n==================================================`);
-    console.log(`[DEV OTP NOTIFICATION]`);
-    console.log(`To: ${toEmail}`);
-    console.log(`OTP Code: ${otp}`);
-    console.log(`Reason: EMAIL_USER/EMAIL_PASS not configured in .env`);
-    console.log(`==================================================\n`);
-    return { delivered: false, devOtp: otp };
+  if (isPlaceholderCredential(user) || isPlaceholderCredential(pass) || !isValidEmailAddress(user)) {
+    const error = new Error("Email delivery is not configured");
+    error.code = "EMAIL_NOT_CONFIGURED";
+    throw error;
   }
 
   // 3. Try Gmail SMTP
@@ -174,18 +174,18 @@ async function sendOtpEmail(toEmail, otp) {
         </div>
       `,
     });
-    console.log(`[MAILER SUCCESS] OTP email sent to ${toEmail}. Message ID: ${info.messageId}`);
+    // `accepted` is populated only after the SMTP server accepts the recipient.
+    if (!info.accepted?.includes(toEmail)) {
+      throw new Error("SMTP server did not accept the recipient address");
+    }
+    console.log(`[MAILER SUCCESS] OTP email accepted for ${toEmail}. Message ID: ${info.messageId}`);
     return { delivered: true, messageId: info.messageId };
   } catch (err) {
     console.error(`[MAILER ERROR] SMTP failed for ${toEmail}:`, err.message);
-    console.log(`\n==================================================`);
-    console.log(`[SERVER OTP SAFETY FALLBACK]`);
-    console.log(`To: ${toEmail}`);
-    console.log(`OTP Code: ${otp}`);
-    console.log(`Note: If hosting on Render free tier, raw SMTP ports are blocked.`);
-    console.log(`Add RESEND_API_KEY to Render environment variables to send over HTTPS port 443.`);
-    console.log(`==================================================\n`);
-    return { delivered: false, error: err.message, fallbackOtp: otp };
+    const error = new Error("Unable to deliver the verification email. Please try again later.");
+    error.code = "EMAIL_DELIVERY_FAILED";
+    error.cause = err;
+    throw error;
   }
 }
 
