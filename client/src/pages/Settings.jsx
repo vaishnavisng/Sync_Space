@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useSettings, FONT_FAMILY_STACKS } from "../context/SettingsContext";
+import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "../components/ThemeToggle";
 import socket from "../services/socket";
 import { stringToColor } from "../utils/color";
@@ -8,6 +9,13 @@ import "./Settings.css";
 export default function Settings({ onClose }) {
   const navigate = useNavigate();
   const { settings, updateSetting, resetSettings } = useSettings();
+  const { username, logout } = useAuth();
+
+  const handleSignOut = () => {
+    logout();
+    if (onClose) onClose();
+    navigate("/", { replace: true });
+  };
 
   return (
     <div className="settings">
@@ -126,6 +134,21 @@ export default function Settings({ onClose }) {
                 </button>
               )}
             </div>
+          </div>
+
+          <h2>Account</h2>
+          <div className="settings-group settings-group--row">
+            <div>
+              <label>Signed In As</label>
+              <small>{username || "Guest User"}</small>
+            </div>
+            <button
+              type="button"
+              className="settings-signout-btn"
+              onClick={handleSignOut}
+            >
+              Sign Out
+            </button>
           </div>
 
           <div className="settings-actions">

@@ -155,3 +155,24 @@
 }
 .reset-btn:hover { background: var(--danger); color: #1a0d0d; }
 .reset-btn:active { transform: translateY(1px); }
+
+.settings-signout-btn {
+  padding: 6px 14px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ff8585;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease), border-color var(--duration-fast) var(--ease), transform var(--duration-fast) var(--ease);
+}
+.settings-signout-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ff6b6b;
+  color: #fff;
+  transform: translateY(-1px);
+}
+.settings-signout-btn:active {
+  transform: translateY(0);
+}

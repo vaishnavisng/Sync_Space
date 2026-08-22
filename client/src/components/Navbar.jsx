@@ -1,6 +1,7 @@
 import { useLayoutEffect, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiSettings } from "react-icons/fi";
+import { FiSettings, FiLogOut } from "react-icons/fi";
+import { useAuth } from "../context/AuthContext";
 import Logo from "./Logo";
 import ThemeToggle from "./ThemeToggle";
 import "./Navbar.css";
@@ -21,6 +22,7 @@ function stringToColor(str) {
 
 function Navbar({ roomId, mode, onModeChange, onOpenReplay, onOpenSettings, isAdmin, pendingRequests, onApproveJoin, onDenyJoin, users = [] }) {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const [copied, setCopied] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -40,6 +42,10 @@ function Navbar({ roomId, mode, onModeChange, onOpenReplay, onOpenSettings, isAd
 
   const handleLeaveRoom = () => setShowLeaveConfirm(true);
   const confirmLeaveRoom = () => navigate("/home");
+  const handleSignOut = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
 
   useEffect(() => {
     if (!showPeople) return undefined;
@@ -131,6 +137,14 @@ function Navbar({ roomId, mode, onModeChange, onOpenReplay, onOpenSettings, isAd
             <ThemeToggle />
             <button className="navbar__icon-btn" title="Settings" aria-label="Settings" onClick={() => onOpenSettings?.()}>
               <FiSettings size={15} />
+            </button>
+            <button
+              className="navbar__icon-btn navbar__icon-btn--danger"
+              title="Sign Out"
+              aria-label="Sign Out"
+              onClick={handleSignOut}
+            >
+              <FiLogOut size={15} />
             </button>
           </div>
 

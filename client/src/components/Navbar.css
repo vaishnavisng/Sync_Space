@@ -96,6 +96,12 @@
   transform: translateY(-1px);
 }
 
+.navbar__icon-btn--danger:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #ff8585;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
 .navbar__chip {
   display: inline-flex;
   align-items: center;

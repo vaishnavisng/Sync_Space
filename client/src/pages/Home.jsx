@@ -1,13 +1,45 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import Logo from "../components/Logo";
 import "./Home.css";
 
 function Home() {
+  const { username, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
+
   return (
     <div className="home-hero">
       <div className="home-dots" />
       <div className="home-orb home-orb--a" />
       <div className="home-orb home-orb--b" />
+
+      {/* Top Header with User Badge & Sign Out */}
+      <header className="home-topbar">
+        <div className="home-user-badge">
+          <span className="home-user-avatar">
+            {(username || "U").slice(0, 1).toUpperCase()}
+          </span>
+          <span className="home-username">{username || "User"}</span>
+        </div>
+        <button
+          type="button"
+          className="home-signout-btn"
+          onClick={handleSignOut}
+          title="Sign out of your account"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span>Sign Out</span>
+        </button>
+      </header>
 
       <div className="home-content">
         <div className="home-logo-tile">
