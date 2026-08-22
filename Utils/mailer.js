@@ -25,13 +25,11 @@ function getTransporter() {
   if (!transporter) {
     const cleanPass = (process.env.EMAIL_PASS || "").replace(/\s+/g, "");
     transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      service: "gmail",
       lookup: forceIPv4Lookup,
-      connectionTimeout: 6000,
-      greetingTimeout: 6000,
-      socketTimeout: 8000,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
       auth: {
         user: process.env.EMAIL_USER?.trim(),
         pass: cleanPass,
@@ -56,35 +54,33 @@ async function sendOtpEmail(toEmail, otp) {
     return;
   }
 
-  // Enforce a strict 7-second timeout on SMTP sendMail so server response doesn't hang
-  const sendPromise = getTransporter().sendMail({
-    from: `"SyncSpace" <${user}>`,
-    to: toEmail,
-    subject: "Your SyncSpace verification code",
-    text: `Your OTP is ${otp}. It expires in 10 minutes.`,
-  });
-
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("SMTP email connection timed out after 7 seconds.")), 7000)
-  );
-
   try {
-    await Promise.race([sendPromise, timeoutPromise]);
-    console.log(`[MAILER SUCCESS] OTP email sent to ${toEmail}`);
+    const info = await getTransporter().sendMail({
+      from: `"SyncSpace" <${user}>`,
+      to: toEmail,
+      subject: "Your SyncSpace verification code",
+      text: `Your OTP is ${otp}. It expires in 10 minutes.`,
+      html: `
+        <div style="font-family: sans-serif; padding: 20px; color: #333;">
+          <h2 style="color: #4F46E5;">SyncSpace Verification Code</h2>
+          <p>Your 6-digit OTP code is:</p>
+          <div style="font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #4F46E5; padding: 10px 0;">
+            ${otp}
+          </div>
+          <p>This code expires in 10 minutes.</p>
+        </div>
+      `,
+    });
+    console.log(`[MAILER SUCCESS] OTP email sent to ${toEmail}. Message ID: ${info.messageId}`);
   } catch (err) {
-    console.error(`[MAILER ERROR] Primary SMTP failed for ${toEmail}:`, err.message);
-    // Print OTP in logs as safety fallback so account creation & verification is never stuck
+    console.error(`[MAILER ERROR] Failed to send email to ${toEmail}:`, err.message);
     console.log(`\n==================================================`);
     console.log(`[SERVER OTP SAFETY FALLBACK]`);
     console.log(`To: ${toEmail}`);
     console.log(`OTP Code: ${otp}`);
-    console.log(`SMTP Error: ${err.message}`);
+    console.log(`Error: ${err.message}`);
     console.log(`==================================================\n`);
-
-    // If environment requires strict SMTP, throw error, otherwise allow OTP creation to proceed
-    if (process.env.STRICT_MAIL_ERRORS === "true") {
-      throw err;
-    }
+    throw new Error(`Email delivery failed: ${err.message}`);
   }
 }
 
