@@ -22,9 +22,12 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Username/email and password required" });
     }
 
-    const user = await User.findOne({ $or: [{ username: identifier }, { email: identifier }] });
+    const lowerIdentifier = identifier.toLowerCase();
+    const user = await User.findOne({
+      $or: [{ username: identifier }, { email: lowerIdentifier }],
+    });
     if (!user) return res.status(404).json({ error: "No account found with that username or email" });
-    if (!user.isVerified) return res.status(403).json({ error: "Please verify your email first" });
+    if (!user.isVerified) return res.status(403).json({ error: "Please verify your email first", email: user.email });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
@@ -46,9 +49,21 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ error: "All fields required" });
     }
 
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+
     const existing = await User.findOne({ $or: [{ username }, { email }] });
     if (existing) {
       if (existing.email === email && !existing.isVerified) {
+        // Ensure the chosen username isn't already taken by another account
+        if (existing.username !== username) {
+          const usernameTaken = await User.findOne({ username, _id: { $ne: existing._id } });
+          if (usernameTaken) {
+            return res.status(409).json({ error: "Username already in use" });
+          }
+        }
+
         const existingOtp = generateOtp();
         try {
           await sendOtpEmail(email, existingOtp);
@@ -137,14 +152,16 @@ router.post("/resend-otp", async (req, res) => {
 
 router.post("/forgot-password", async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = req.body?.email?.trim().toLowerCase();
+    if (!email) return res.status(400).json({ error: "Email is required" });
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: "No account with that email" });
 
-    // A fresh OTP issued < (TTL - cooldown) ago means one was just sent —
-    // block re-sends within the cooldown window without needing a new field.
-    if (user.otpExpiresAt && user.otpExpiresAt.getTime() - Date.now() > OTP_TTL_MS - RESEND_COOLDOWN_MS) {
-      return res.status(429).json({ error: "A code was just sent — please wait a minute before retrying." });
+    if (user.otpExpiresAt && user.otpExpiresAt instanceof Date && !isNaN(user.otpExpiresAt.getTime())) {
+      const remainingTime = user.otpExpiresAt.getTime() - Date.now();
+      if (remainingTime > OTP_TTL_MS - RESEND_COOLDOWN_MS) {
+        return res.status(429).json({ error: "A code was just sent — please wait a minute before retrying." });
+      }
     }
 
     const otp = generateOtp();
@@ -162,7 +179,15 @@ router.post("/forgot-password", async (req, res) => {
 
 router.post("/reset-password", async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
+    const email = req.body?.email?.trim().toLowerCase();
+    const { otp, newPassword } = req.body || {};
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({ error: "Email, code, and new password are required" });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+
     const user = await User.findOne({ email });
 
     if (!user) return res.status(404).json({ error: "User not found" });

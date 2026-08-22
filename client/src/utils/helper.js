@@ -1,8 +1,9 @@
-const USERNAME_KEY = "syncspace:username";
+const USERNAME_KEY = "username";
+const LEGACY_USERNAME_KEY = "syncspace:username";
 
 export function getStoredUsername() {
   try {
-    return localStorage.getItem(USERNAME_KEY) || "";
+    return localStorage.getItem(USERNAME_KEY) || localStorage.getItem(LEGACY_USERNAME_KEY) || "";
   } catch {
     return "";
   }

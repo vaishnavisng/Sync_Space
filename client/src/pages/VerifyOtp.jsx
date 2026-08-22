@@ -8,8 +8,7 @@ export default function VerifyOtp() {
   const location = useLocation();
   const navigate = useNavigate();
   const { login } = useAuth();
-  const email = location.state?.email || "";
-
+  const [email, setEmail] = useState(location.state?.email || "");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [resendMsg, setResendMsg] = useState("");
@@ -22,9 +21,13 @@ export default function VerifyOtp() {
   const handleVerify = async (e) => {
     e.preventDefault();
     setError("");
+    if (!email.trim()) {
+      setError("Email address is required.");
+      return;
+    }
     setLoading(true);
     try {
-      const data = await verifyOtpRequest(email, otp);
+      const data = await verifyOtpRequest(email.trim(), otp);
       login(data.token, data.username);
       navigate("/home");
     } catch (err) {
@@ -38,8 +41,12 @@ export default function VerifyOtp() {
   const handleResend = async () => {
     setResendMsg("");
     setError("");
+    if (!email.trim()) {
+      setError("Email address is required to resend code.");
+      return;
+    }
     try {
-      await resendOtpRequest(email);
+      await resendOtpRequest(email.trim());
       setResendMsg("Code resent to your email.");
     } catch (err) {
       setError(err.message);
@@ -55,7 +62,7 @@ export default function VerifyOtp() {
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-lg mb-6">S</div>
           <h2 className="text-3xl font-bold tracking-tight text-white">Verify your email</h2>
           <p className="mt-2 text-sm text-slate-400">
-            We sent a 6-digit code to <span className="text-slate-300">{email}</span>.
+            We sent a 6-digit code to {email ? <span className="text-slate-300">{email}</span> : "your email"}.
           </p>
         </div>
 
@@ -67,14 +74,31 @@ export default function VerifyOtp() {
         )}
 
         <form onSubmit={handleVerify} className="space-y-6">
-          <input
-            placeholder="000000"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            maxLength={6}
-            required
-            className="w-full text-center tracking-[0.5em] text-xl rounded-xl border border-slate-800 bg-[#111827] px-4 py-3 text-white placeholder-slate-700 outline-none transition duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-          />
+          {!location.state?.email && (
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Email Address</label>
+              <input
+                type="email"
+                required
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full rounded-xl border border-slate-800 bg-[#111827] px-4 py-3 text-white placeholder-slate-600 outline-none transition duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">6-Digit Code</label>
+            <input
+              placeholder="000000"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              maxLength={6}
+              required
+              className="w-full text-center tracking-[0.5em] text-xl rounded-xl border border-slate-800 bg-[#111827] px-4 py-3 text-white placeholder-slate-700 outline-none transition duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+            />
+          </div>
           <button
             type="submit"
             disabled={loading}

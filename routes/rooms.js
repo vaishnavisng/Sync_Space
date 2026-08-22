@@ -2,6 +2,8 @@ const express = require("express");
 const crypto = require("crypto");
 const { roomExists, listUsers } = require("../sockets/roomStore");
 
+const authMiddleware = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
 function generateRoomId() {
@@ -9,7 +11,7 @@ function generateRoomId() {
 }
 
 // POST /api/rooms  -> mints a shareable room code for CreateRoom.jsx to display
-router.post("/", (req, res) => {
+router.post("/", authMiddleware, (req, res) => {
   res.status(201).json({ roomId: generateRoomId() });
 });
 

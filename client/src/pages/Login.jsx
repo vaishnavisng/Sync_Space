@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginRequest } from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -13,7 +13,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ message: "", tone: "error" });
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/home", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -26,8 +32,9 @@ export default function Login() {
       login(data.token, data.username);
       navigate("/home");
     } catch (err) {
-      if (err.message === "Please verify your email first" && form.identifier.includes("@")) {
-        navigate("/verify-otp", { state: { email: form.identifier.trim(), toast: "Please verify your email to continue." } });
+      const unverifiedEmail = err.email || (form.identifier.includes("@") ? form.identifier.trim() : "");
+      if (err.message === "Please verify your email first" && unverifiedEmail) {
+        navigate("/verify-otp", { state: { email: unverifiedEmail, toast: "Please verify your email to continue." } });
         return;
       }
       setError(err.message);

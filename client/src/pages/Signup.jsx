@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { signupRequest } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import Toast from "../components/Toast";
 
 export default function Signup() {
@@ -9,12 +10,25 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ message: "", tone: "error" });
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/home", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (form.password.length < 6) {
+      const msg = "Password must be at least 6 characters.";
+      setError(msg);
+      setToast({ message: msg, tone: "error" });
+      return;
+    }
     setLoading(true);
     try {
       const data = await signupRequest(form.username, form.email, form.password);

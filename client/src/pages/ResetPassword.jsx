@@ -16,8 +16,7 @@ const STRENGTH_COLOR = ["bg-red-500", "bg-red-500", "bg-yellow-500", "bg-blue-50
 export default function ResetPassword() {
   const location = useLocation();
   const navigate = useNavigate();
-  const email = location.state?.email || "";
-
+  const [email, setEmail] = useState(location.state?.email || "");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -32,10 +31,14 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (!email.trim()) {
+      setError("Email address is required.");
+      return;
+    }
     if (mismatch) return;
     setLoading(true);
     try {
-      await resetPasswordRequest(email, otp, newPassword);
+      await resetPasswordRequest(email.trim(), otp, newPassword);
       setSuccess("Password reset! Redirecting to sign in...");
       setTimeout(() => navigate("/"), 1500);
     } catch (err) {
@@ -48,8 +51,12 @@ export default function ResetPassword() {
   const handleResend = async () => {
     if (cooldown > 0) return;
     setError("");
+    if (!email.trim()) {
+      setError("Email address is required to resend code.");
+      return;
+    }
     try {
-      await forgotPasswordRequest(email);
+      await forgotPasswordRequest(email.trim());
       setCooldown(60);
       const t = setInterval(() => {
         setCooldown((c) => {
@@ -87,6 +94,20 @@ export default function ResetPassword() {
           {success && <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-sm text-emerald-400">{success}</div>}
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {!location.state?.email && (
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-xl border border-slate-800 bg-[#111827] px-4 py-3 text-white placeholder-slate-600 outline-none transition duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                />
+              </div>
+            )}
+
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">Reset Code</label>

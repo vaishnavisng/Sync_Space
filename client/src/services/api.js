@@ -3,20 +3,30 @@ import { API_BASE_URL } from "../utils/constants";
 async function handle(res) {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Request failed: ${res.status}`);
+    const err = new Error(body.error || `Request failed: ${res.status}`);
+    err.status = res.status;
+    err.email = body.email;
+    throw err;
   }
   return res.json();
 }
 
 async function request(url, options = {}) {
+  const token = localStorage.getItem("token");
+  const headers = { ...options.headers };
+  if (token && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    return await fetch(url, { ...options, headers, signal: controller.signal });
   } catch (error) {
     if (error.name === "AbortError") {
       throw new Error("The server took too long to respond. Please try again.");
     }
+    if (error.status) throw error;
     throw new Error("Unable to connect to the server. Please try again.");
   } finally {
     clearTimeout(timeout);
@@ -24,12 +34,12 @@ async function request(url, options = {}) {
 }
 
 export async function createRoom() {
-  const res = await fetch(`${API_BASE_URL}/rooms`, { method: "POST" });
+  const res = await request(`${API_BASE_URL}/rooms`, { method: "POST" });
   return handle(res);
 }
 
 export async function getRoom(roomId) {
-  const res = await fetch(`${API_BASE_URL}/rooms/${roomId}`);
+  const res = await request(`${API_BASE_URL}/rooms/${roomId}`);
   return handle(res);
 }
 
@@ -50,8 +60,9 @@ export async function signupRequest(username, email, password) {
   });
   return handle(res);
 }
+
 export async function verifyOtpRequest(email, otp) {
-  const res = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
+  const res = await request(`${API_BASE_URL}/auth/verify-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, otp }),
@@ -60,7 +71,7 @@ export async function verifyOtpRequest(email, otp) {
 }
 
 export async function resendOtpRequest(email) {
-  const res = await fetch(`${API_BASE_URL}/auth/resend-otp`, {
+  const res = await request(`${API_BASE_URL}/auth/resend-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
@@ -69,7 +80,7 @@ export async function resendOtpRequest(email) {
 }
 
 export async function forgotPasswordRequest(email) {
-  const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+  const res = await request(`${API_BASE_URL}/auth/forgot-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
@@ -78,7 +89,7 @@ export async function forgotPasswordRequest(email) {
 }
 
 export async function resetPasswordRequest(email, otp, newPassword) {
-  const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+  const res = await request(`${API_BASE_URL}/auth/reset-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, otp, newPassword }),
@@ -87,12 +98,12 @@ export async function resetPasswordRequest(email, otp, newPassword) {
 }
 
 export async function fetchReplayHistory(roomId) {
-  const res = await fetch(`${API_BASE_URL}/rooms/${roomId}/history`);
+  const res = await request(`${API_BASE_URL}/rooms/${roomId}/history`);
   return handle(res);
 }
 
 export async function askAi({ question, code, language, fileName, errorOutput }) {
-  const res = await fetch(`${API_BASE_URL}/ai/ask`, {
+  const res = await request(`${API_BASE_URL}/ai/ask`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ question, code, language, fileName, errorOutput }),

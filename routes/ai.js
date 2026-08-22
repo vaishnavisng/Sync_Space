@@ -1,5 +1,6 @@
 const express = require("express");
 const { GoogleGenAI } = require("@google/genai");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -41,7 +42,7 @@ function buildPrompt({ question, code, language, fileName, errorOutput }) {
   return parts.join("\n");
 }
 
-router.post("/ask", async (req, res) => {
+router.post("/ask", authMiddleware, async (req, res) => {
   if (!process.env.GEMINI_API_KEY) {
     return res.status(503).json({ error: "AI doubt box is not configured on this server." });
   }
