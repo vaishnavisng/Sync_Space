@@ -63,6 +63,11 @@ async function sendViaResend(toEmail, otp) {
 async function sendViaBrevo(toEmail, otp) {
   const apiKey = process.env.BREVO_API_KEY?.trim();
   if (!apiKey) return null;
+  const senderEmail = process.env.EMAIL_USER?.trim();
+  if (!isValidEmailAddress(senderEmail)) {
+    console.error("[MAILER BREVO ERROR]: EMAIL_USER must be a verified sender email address");
+    return null;
+  }
 
   try {
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -72,7 +77,7 @@ async function sendViaBrevo(toEmail, otp) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        sender: { name: "SyncSpace", email: process.env.EMAIL_USER || "noreply@syncspace.com" },
+        sender: { name: "SyncSpace", email: senderEmail },
         to: [{ email: toEmail }],
         subject: "Your SyncSpace verification code",
         textContent: `Your OTP is ${otp}. It expires in 10 minutes.`,
@@ -133,16 +138,51 @@ async function createIPv4Transporter() {
 }
 
 async function sendOtpEmail(toEmail, otp) {
-  // 1. Try Resend HTTP API (Port 443) if configured
-  if (process.env.RESEND_API_KEY) {
-    const resendResult = await sendViaResend(toEmail, otp);
-    if (resendResult && resendResult.delivered) return resendResult;
+  const provider = (process.env.EMAIL_PROVIDER || "auto").trim().toLowerCase();
+  if (!["auto", "resend", "brevo", "gmail"].includes(provider)) {
+    const error = new Error("EMAIL_PROVIDER must be auto, resend, brevo, or gmail");
+    error.code = "EMAIL_NOT_CONFIGURED";
+    throw error;
   }
 
-  // 2. Try Brevo HTTP API (Port 443) if configured
-  if (process.env.BREVO_API_KEY) {
+  // Explicit providers never silently fall back to another service.
+  if (provider === "resend" && !process.env.RESEND_API_KEY) {
+    const error = new Error("RESEND_API_KEY is not configured");
+    error.code = "EMAIL_NOT_CONFIGURED";
+    throw error;
+  }
+  if (provider === "brevo" && !process.env.BREVO_API_KEY) {
+    const error = new Error("BREVO_API_KEY is not configured");
+    error.code = "EMAIL_NOT_CONFIGURED";
+    throw error;
+  }
+
+  // 1. Try Resend HTTPS API (Port 443) when selected or in automatic mode.
+  if ((provider === "resend" || provider === "auto") && process.env.RESEND_API_KEY) {
+    const resendResult = await sendViaResend(toEmail, otp);
+    if (resendResult && resendResult.delivered) return resendResult;
+    if (provider === "resend") {
+      const error = new Error("Resend could not deliver the verification email");
+      error.code = "EMAIL_DELIVERY_FAILED";
+      throw error;
+    }
+  }
+
+  // 2. Try Brevo HTTPS API (Port 443) when selected or in automatic mode.
+  if ((provider === "brevo" || provider === "auto") && process.env.BREVO_API_KEY) {
     const brevoResult = await sendViaBrevo(toEmail, otp);
     if (brevoResult && brevoResult.delivered) return brevoResult;
+    if (provider === "brevo") {
+      const error = new Error("Brevo could not deliver the verification email");
+      error.code = "EMAIL_DELIVERY_FAILED";
+      throw error;
+    }
+  }
+
+  if (provider !== "auto" && provider !== "gmail") {
+    const error = new Error("Selected email provider is not configured");
+    error.code = "EMAIL_NOT_CONFIGURED";
+    throw error;
   }
 
   const user = process.env.EMAIL_USER?.trim();

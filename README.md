@@ -54,6 +54,11 @@ Account security settings. If the app is deployed somewhere that blocks SMTP
 ports (including Render's free tier), configure `RESEND_API_KEY` and a verified
 `EMAIL_FROM` sender instead; the email provider API uses HTTPS.
 
+For a free setup without your own domain, use Brevo: verify your Gmail address
+as a Brevo Sender, then set `EMAIL_PROVIDER=brevo`, `EMAIL_USER` to that
+verified address, and `BREVO_API_KEY` to a Brevo API key. Remove
+`RESEND_API_KEY` from the deployment so an old Resend key cannot be selected.
+
 (Optional) seed a dev user to skip the signup/OTP flow while testing:
 
 #bash
