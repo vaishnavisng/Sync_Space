@@ -34,7 +34,7 @@ Node.js
 A MongoDB instance (local or Atlas)
 1. Clone and set up the backend
 bash
-git clone https://github.com/Sandip1230/SyncSpace.git
+git clone https://github.com/your-account/your-repository.git
 cd SyncSpace
 npm install
 
