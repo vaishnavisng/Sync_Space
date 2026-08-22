@@ -1,0 +1,25 @@
+.ping-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 4px 8px;
+}
+.ping-indicator__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  animation: ping-pulse 2s ease-in-out infinite;
+}
+.ping-indicator--good .ping-indicator__dot { background: var(--success); }
+.ping-indicator--okay .ping-indicator__dot { background: #f2b134; }
+.ping-indicator--poor .ping-indicator__dot { background: var(--danger); }
+.ping-indicator--unknown .ping-indicator__dot { background: var(--text-secondary); }
+
+@keyframes ping-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}

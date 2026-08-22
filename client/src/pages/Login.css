@@ -1,0 +1,105 @@
+.login-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3ddc97;
+  box-shadow: 0 0 6px #3ddc97;
+  animation: login-pulse 2s ease-in-out infinite;
+}
+
+@keyframes login-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.login-panel-in {
+  animation: login-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.login-form-in {
+  animation: login-fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+@keyframes login-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* drifting gradient orbs */
+.login-orb {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  filter: blur(70px);
+  pointer-events: none;
+}
+.login-orb--a {
+  top: 8%;
+  left: 8%;
+  background: rgba(63, 198, 214, 0.14);
+  animation: login-orb-drift-a 14s ease-in-out infinite;
+}
+.login-orb--b {
+  bottom: 5%;
+  right: 5%;
+  background: rgba(61, 220, 151, 0.12);
+  animation: login-orb-drift-b 16s ease-in-out infinite;
+}
+
+@keyframes login-orb-drift-a {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, 25px); }
+}
+@keyframes login-orb-drift-b {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-25px, -20px); }
+}
+
+.login-eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #3fc6d6;
+  background: rgba(63, 198, 214, 0.12);
+  border: 1px solid rgba(63, 198, 214, 0.3);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.login-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.login-feature {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a9b8d4;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #2c3f66;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+/* brand wordmark - bold gradient text, matching the Logo's own gradient */
+.login-wordmark {
+  font-family: "Poppins", "Segoe UI", system-ui, sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  background: linear-gradient(120deg, #3fc6d6 10%, #56d3e1 45%, #3ddc97 90%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.login-wordmark--sm {
+  font-size: 22px;
+}

@@ -1,0 +1,52 @@
+.logo-icon {
+  overflow: visible;
+  filter: drop-shadow(0 0 2px rgba(63, 198, 214, 0.25));
+  transition: filter 0.25s ease;
+}
+
+.logo-bracket {
+  transform-origin: center;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.logo-bracket--left { transform: translateX(0); }
+.logo-bracket--right { transform: translateX(0); }
+
+/* the small centre dot represents SyncSpace's real-time sync — a gentle,
+   always-on pulse so the mark feels "live" even at rest */
+.logo-pulse-dot {
+  animation: logo-dot-pulse 2.4s ease-in-out infinite;
+}
+
+.logo-pulse-ring {
+  opacity: 0;
+  transform-origin: center;
+  animation: logo-ring-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes logo-dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@keyframes logo-ring-pulse {
+  0% { opacity: 0.5; transform: scale(0.6); }
+  70% { opacity: 0; transform: scale(2.1); }
+  100% { opacity: 0; transform: scale(2.1); }
+}
+
+/* hover — brackets flex outward slightly and the glow intensifies */
+a:hover > .logo-icon,
+.logo-icon:hover {
+  filter: drop-shadow(0 0 6px rgba(63, 198, 214, 0.55));
+}
+
+a:hover > .logo-icon .logo-bracket--left,
+.logo-icon:hover .logo-bracket--left {
+  transform: translateX(-1.5px);
+}
+
+a:hover > .logo-icon .logo-bracket--right,
+.logo-icon:hover .logo-bracket--right {
+  transform: translateX(1.5px);
+}

@@ -1,0 +1,93 @@
+.room-card {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.room-field {
+  text-align: left;
+}
+.room-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a9b8d4;
+  margin-bottom: 6px;
+}
+.room-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #2c3f66;
+  background: rgba(255, 255, 255, 0.03);
+  color: #e7edf7;
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease), box-shadow var(--duration-fast) var(--ease), background var(--duration-fast) var(--ease);
+}
+.room-field input::placeholder {
+  color: #5b6a8c;
+}
+.room-field input:focus {
+  border-color: #3fc6d6;
+  background: #1f2937;
+  box-shadow: 0 0 0 3px rgba(63, 198, 214, 0.15);
+}
+
+.room-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #ff9c9c;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.room-submit {
+  width: 100%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.room-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.room-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(11, 21, 38, 0.35);
+  border-top-color: #0b1526;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.room-back {
+  font-size: 13px;
+  color: #a9b8d4;
+  margin-top: 6px;
+}
+.room-back a {
+  color: #3fc6d6;
+  font-weight: 600;
+  text-decoration: none;
+}
+.room-back a:hover {
+  text-decoration: underline;
+}

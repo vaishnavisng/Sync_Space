@@ -1,0 +1,68 @@
+.page-shell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: radial-gradient(circle at 50% 20%, #16233f 0%, var(--bg-primary) 70%);
+  color: var(--text-primary);
+  animation: fade-in var(--duration-slow) var(--ease);
+}
+
+.page-title { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+.page-subtitle { color: var(--text-secondary); max-width: 380px; text-align: center; font-size: 14px; margin: 0; }
+
+.page-input {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  width: 260px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease), box-shadow var(--duration-fast) var(--ease);
+}
+.page-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(63, 198, 214, 0.15);
+}
+
+.page-actions { display: flex; gap: 12px; }
+
+.page-btn {
+  padding: 11px 22px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease), background var(--duration-fast) var(--ease), opacity var(--duration-fast) var(--ease);
+}
+.page-btn:active:not(:disabled) { transform: translateY(1px); }
+.page-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.page-btn--primary { background: var(--accent); color: var(--bg-primary); }
+.page-btn--primary:hover:not(:disabled) { background: var(--accent-strong); }
+
+.page-btn--secondary { background: var(--bg-panel); color: var(--text-primary); border: 1px solid var(--border-subtle); }
+.page-btn--secondary:hover { background: var(--bg-panel-raised); }
+
+.page-error {
+  color: var(--danger);
+  font-size: 13px;
+  animation: fade-in var(--duration-fast) var(--ease);
+}
+
+.page-spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(11, 21, 38, 0.3);
+  border-top-color: var(--bg-primary);
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
