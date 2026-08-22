@@ -18,11 +18,23 @@ const chatTypingHandler = require("./sockets/chatTypingHandler");
 const aiRouter = require("./routes/ai");
 
 const PORT = process.env.PORT || 5000;
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "*";
+const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGIN || "*")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/$/, ""))
+  .filter(Boolean);
 const joinRequestHandler = require("./sockets/joinRequestHandler");
 
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || FRONTEND_ORIGINS.includes("*") || FRONTEND_ORIGINS.includes(origin.replace(/\/$/, ""))) {
+      return callback(null, true);
+    }
+    return callback(new Error("Origin is not allowed by CORS"));
+  },
+};
+
 const app = express();
-app.use(cors({ origin: FRONTEND_ORIGIN }));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
@@ -36,7 +48,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: FRONTEND_ORIGIN }, maxHttpBufferSize: 5e6 });
+const io = new Server(server, { cors: corsOptions, maxHttpBufferSize: 5e6 });
 io.on("connection", (socket) => {
   roomHandler(io, socket);
   yjsHandler(io, socket);

@@ -39,13 +39,24 @@ router.post("/login", async (req, res) => {
 
 router.post("/signup", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const username = req.body?.username?.trim();
+    const email = req.body?.email?.trim().toLowerCase();
+    const password = req.body?.password;
     if (!username || !email || !password) {
       return res.status(400).json({ error: "All fields required" });
     }
 
     const existing = await User.findOne({ $or: [{ username }, { email }] });
     if (existing) {
+      if (existing.email === email && !existing.isVerified) {
+        existing.username = username;
+        existing.password = await bcrypt.hash(password, 10);
+        existing.otp = generateOtp();
+        existing.otpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
+        await existing.save();
+        await sendOtpEmail(email, existing.otp);
+        return res.status(200).json({ message: "OTP sent to email", email });
+      }
       return res.status(409).json({ error: "Username or email already in use" });
     }
 
@@ -58,7 +69,12 @@ router.post("/signup", async (req, res) => {
       otp, otpExpiresAt, isVerified: false,
     });
 
-    await sendOtpEmail(email, otp);
+    try {
+      await sendOtpEmail(email, otp);
+    } catch (mailError) {
+      await User.deleteOne({ _id: user._id });
+      throw mailError;
+    }
 
     res.status(201).json({ message: "OTP sent to email", email: user.email });
   } catch (err) {
