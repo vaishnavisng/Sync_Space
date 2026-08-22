@@ -65,12 +65,7 @@ router.post("/signup", async (req, res) => {
         }
 
         const existingOtp = generateOtp();
-        try {
-          await sendOtpEmail(email, existingOtp);
-        } catch (mailError) {
-          console.error("Signup email error:", mailError.message);
-          return res.status(502).json({ error: "Unable to send verification email. Check the email service configuration." });
-        }
+        await sendOtpEmail(email, existingOtp);
         existing.username = username;
         existing.password = await bcrypt.hash(password, 10);
         existing.otp = existingOtp;
@@ -85,12 +80,7 @@ router.post("/signup", async (req, res) => {
     const otp = generateOtp();
     const otpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
 
-    try {
-      await sendOtpEmail(email, otp);
-    } catch (mailError) {
-      console.error("Signup email error:", mailError.message);
-      return res.status(502).json({ error: "Unable to send verification email. Check the email service configuration." });
-    }
+    await sendOtpEmail(email, otp);
 
     await User.create({
       username, email, password: hashedPassword,
