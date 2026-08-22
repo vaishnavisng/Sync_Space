@@ -8,6 +8,21 @@ async function handle(res) {
   return res.json();
 }
 
+async function request(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("The server took too long to respond. Please try again.");
+    }
+    throw new Error("Unable to connect to the server. Please try again.");
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export async function createRoom() {
   const res = await fetch(`${API_BASE_URL}/rooms`, { method: "POST" });
   return handle(res);
@@ -19,7 +34,7 @@ export async function getRoom(roomId) {
 }
 
 export async function loginRequest(identifier, password) {
-  const res = await fetch(`${API_BASE_URL}/auth/login`, {
+  const res = await request(`${API_BASE_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username: identifier, email: identifier, password }),
@@ -28,7 +43,7 @@ export async function loginRequest(identifier, password) {
 }
 
 export async function signupRequest(username, email, password) {
-  const res = await fetch(`${API_BASE_URL}/auth/signup`, {
+  const res = await request(`${API_BASE_URL}/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, email, password }),

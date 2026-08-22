@@ -73,7 +73,8 @@ router.post("/signup", async (req, res) => {
       await sendOtpEmail(email, otp);
     } catch (mailError) {
       await User.deleteOne({ _id: user._id });
-      throw mailError;
+      console.error("Signup email error:", mailError.message);
+      return res.status(502).json({ error: "Unable to send verification email. Check the email service configuration." });
     }
 
     res.status(201).json({ message: "OTP sent to email", email: user.email });
