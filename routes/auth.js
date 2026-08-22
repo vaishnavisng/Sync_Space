@@ -16,8 +16,8 @@ function generateOtp() {
 
 router.post("/login", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    const identifier = username || email;
+    const identifier = (req.body?.username || req.body?.email || "").trim();
+    const password = req.body?.password;
     if (!identifier || !password) {
       return res.status(400).json({ error: "Username/email and password required" });
     }
@@ -91,7 +91,9 @@ router.post("/signup", async (req, res) => {
 
 router.post("/verify-otp", async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const email = req.body?.email?.trim().toLowerCase();
+    const otp = req.body?.otp?.trim();
+    if (!email || !otp) return res.status(400).json({ error: "Email and OTP are required" });
     const user = await User.findOne({ email });
 
     if (!user) return res.status(404).json({ error: "User not found" });
@@ -114,7 +116,8 @@ router.post("/verify-otp", async (req, res) => {
 
 router.post("/resend-otp", async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = req.body?.email?.trim().toLowerCase();
+    if (!email) return res.status(400).json({ error: "Email is required" });
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: "User not found" });
     if (user.isVerified) return res.status(400).json({ error: "Already verified" });
