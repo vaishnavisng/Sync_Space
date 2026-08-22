@@ -54,7 +54,12 @@ router.post("/signup", async (req, res) => {
         existing.otp = generateOtp();
         existing.otpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
         await existing.save();
-        await sendOtpEmail(email, existing.otp);
+        try {
+          await sendOtpEmail(email, existing.otp);
+        } catch (mailError) {
+          console.error("Signup email error:", mailError.message);
+          return res.status(502).json({ error: "Unable to send verification email. Check the email service configuration." });
+        }
         return res.status(200).json({ message: "OTP sent to email", email });
       }
       return res.status(409).json({ error: "Username or email already in use" });
