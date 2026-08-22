@@ -49,17 +49,18 @@ router.post("/signup", async (req, res) => {
     const existing = await User.findOne({ $or: [{ username }, { email }] });
     if (existing) {
       if (existing.email === email && !existing.isVerified) {
-        existing.username = username;
-        existing.password = await bcrypt.hash(password, 10);
-        existing.otp = generateOtp();
-        existing.otpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
-        await existing.save();
+        const existingOtp = generateOtp();
         try {
-          await sendOtpEmail(email, existing.otp);
+          await sendOtpEmail(email, existingOtp);
         } catch (mailError) {
           console.error("Signup email error:", mailError.message);
           return res.status(502).json({ error: "Unable to send verification email. Check the email service configuration." });
         }
+        existing.username = username;
+        existing.password = await bcrypt.hash(password, 10);
+        existing.otp = existingOtp;
+        existing.otpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
+        await existing.save();
         return res.status(200).json({ message: "OTP sent to email", email });
       }
       return res.status(409).json({ error: "Username or email already in use" });
@@ -69,20 +70,19 @@ router.post("/signup", async (req, res) => {
     const otp = generateOtp();
     const otpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
 
-    const user = await User.create({
-      username, email, password: hashedPassword,
-      otp, otpExpiresAt, isVerified: false,
-    });
-
     try {
       await sendOtpEmail(email, otp);
     } catch (mailError) {
-      await User.deleteOne({ _id: user._id });
       console.error("Signup email error:", mailError.message);
       return res.status(502).json({ error: "Unable to send verification email. Check the email service configuration." });
     }
 
-    res.status(201).json({ message: "OTP sent to email", email: user.email });
+    await User.create({
+      username, email, password: hashedPassword,
+      otp, otpExpiresAt, isVerified: false,
+    });
+
+    res.status(201).json({ message: "OTP sent to email", email });
   } catch (err) {
     console.error("Signup error:", err.message);
     res.status(500).json({ error: "Server error during signup" });
