@@ -23,7 +23,7 @@ router.post("/login", async (req, res) => {
     }
 
     const user = await User.findOne({ $or: [{ username: identifier }, { email: identifier }] });
-    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+    if (!user) return res.status(404).json({ error: "No account found with that username or email" });
     if (!user.isVerified) return res.status(403).json({ error: "Please verify your email first" });
 
     const isMatch = await bcrypt.compare(password, user.password);

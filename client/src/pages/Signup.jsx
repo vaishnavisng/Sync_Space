@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { signupRequest } from "../services/api";
+import Toast from "../components/Toast";
 
 export default function Signup() {
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ message: "", tone: "error" });
   const navigate = useNavigate();
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -16,9 +18,10 @@ export default function Signup() {
     setLoading(true);
     try {
       const data = await signupRequest(form.username, form.email, form.password);
-      navigate("/verify-otp", { state: { email: data.email } });
+      navigate("/verify-otp", { state: { email: data.email, toast: "OTP sent to your email." } });
     } catch (err) {
       setError(err.message);
+      setToast({ message: err.message, tone: "error" });
     } finally {
       setLoading(false);
     }
@@ -60,6 +63,7 @@ export default function Signup() {
               {error}
             </div>
           )}
+          <Toast message={toast.message} tone={toast.tone} onDismiss={() => setToast({ message: "", tone: "error" })} />
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

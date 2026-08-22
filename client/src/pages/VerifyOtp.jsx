@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { verifyOtpRequest, resendOtpRequest } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import Toast from "../components/Toast";
 
 export default function VerifyOtp() {
   const location = useLocation();
@@ -13,6 +14,10 @@ export default function VerifyOtp() {
   const [error, setError] = useState("");
   const [resendMsg, setResendMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({
+    message: location.state?.toast || "",
+    tone: "info",
+  });
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -24,6 +29,7 @@ export default function VerifyOtp() {
       navigate("/home");
     } catch (err) {
       setError(err.message);
+      setToast({ message: err.message, tone: "error" });
     } finally {
       setLoading(false);
     }
@@ -37,12 +43,14 @@ export default function VerifyOtp() {
       setResendMsg("Code resent to your email.");
     } catch (err) {
       setError(err.message);
+      setToast({ message: err.message, tone: "error" });
     }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#090d16] text-slate-200 px-6">
       <div className="w-full max-w-md space-y-8">
+        <Toast message={toast.message} tone={toast.tone} onDismiss={() => setToast({ message: "", tone: "info" })} />
         <div>
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-lg mb-6">S</div>
           <h2 className="text-3xl font-bold tracking-tight text-white">Verify your email</h2>

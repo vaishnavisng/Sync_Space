@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { loginRequest } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import Logo from "../components/Logo";
+import Toast from "../components/Toast";
 import "./Login.css";
 
 export default function Login() {
@@ -10,6 +11,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ message: "", tone: "error" });
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -25,10 +27,11 @@ export default function Login() {
       navigate("/home");
     } catch (err) {
       if (err.message === "Please verify your email first" && form.identifier.includes("@")) {
-        navigate("/verify-otp", { state: { email: form.identifier.trim() } });
+        navigate("/verify-otp", { state: { email: form.identifier.trim(), toast: "Please verify your email to continue." } });
         return;
       }
       setError(err.message);
+      setToast({ message: err.message, tone: "error" });
     } finally {
       setLoading(false);
     }
