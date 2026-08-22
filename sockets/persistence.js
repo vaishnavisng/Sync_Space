@@ -1,5 +1,5 @@
 const Y = require("yjs");
-const Space = require("../models/Space");
+const Space = require("../models/space");
 
 const AUTOSAVE_INTERVAL_MS = 15000;
 let autosaveTimer = null;
