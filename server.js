@@ -22,15 +22,29 @@ const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGIN || "*")
   .split(",")
   .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
+const mongoose = require("mongoose");
 const joinRequestHandler = require("./sockets/joinRequestHandler");
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || FRONTEND_ORIGINS.includes("*") || FRONTEND_ORIGINS.includes(origin.replace(/\/$/, ""))) {
+    if (!origin || FRONTEND_ORIGINS.includes("*")) {
+      return callback(null, true);
+    }
+    const cleanOrigin = origin.replace(/\/$/, "");
+    if (FRONTEND_ORIGINS.includes(cleanOrigin)) {
+      return callback(null, true);
+    }
+    // Automatically permit any Vercel preview/production deployment and local development
+    if (
+      /\.vercel\.app$/.test(cleanOrigin) ||
+      /^https?:\/\/localhost(:\d+)?$/.test(cleanOrigin) ||
+      /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(cleanOrigin)
+    ) {
       return callback(null, true);
     }
     return callback(new Error("Origin is not allowed by CORS"));
   },
+  credentials: true,
 };
 
 const app = express();
@@ -38,7 +52,17 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
-app.get("/health", (req, res) => res.json({ ok: true, uptime: process.uptime() }));
+app.get("/health", (req, res) => {
+  const dbConnected = mongoose.connection.readyState === 1;
+  res.json({
+    ok: true,
+    uptime: process.uptime(),
+    database: {
+      connected: dbConnected,
+      mode: dbConnected ? "mongodb" : "in-memory-fallback",
+    },
+  });
+});
 app.use("/api/rooms", roomsRouter);
 app.use("/api/rooms", replayRouter);
 app.use("/api/auth", authRouter);

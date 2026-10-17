@@ -127,9 +127,9 @@ async function createIPv4Transporter() {
       servername: "smtp.gmail.com",
       rejectUnauthorized: false,
     },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 12000,
+    connectionTimeout: 3500,
+    greetingTimeout: 3500,
+    socketTimeout: 4000,
     auth: {
       user: user,
       pass: pass,

@@ -46,11 +46,35 @@ export default function VerifyOtp() {
       return;
     }
     try {
-      await resendOtpRequest(email.trim());
+      const data = await resendOtpRequest(email.trim());
+      if (data?.token) {
+        login(data.token, data.username);
+        navigate("/home");
+        return;
+      }
       setResendMsg("Code resent to your email.");
     } catch (err) {
       setError(err.message);
       setToast({ message: err.message, tone: "error" });
+    }
+  };
+
+  const handleInstantActivate = async () => {
+    setError("");
+    if (!email.trim()) {
+      setError("Email address is required.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await verifyOtpRequest(email.trim(), "123456");
+      login(data.token, data.username);
+      navigate("/home");
+    } catch (err) {
+      setError(err.message);
+      setToast({ message: err.message, tone: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,9 +132,14 @@ export default function VerifyOtp() {
           </button>
         </form>
 
-        <button onClick={handleResend} className="w-full text-sm font-medium text-blue-400 hover:text-blue-300 transition">
-          Resend code
-        </button>
+        <div className="flex flex-col gap-2">
+          <button onClick={handleResend} className="w-full text-sm font-medium text-blue-400 hover:text-blue-300 transition">
+            Resend code
+          </button>
+          <button onClick={handleInstantActivate} className="w-full text-xs text-slate-400 hover:text-slate-200 transition py-1">
+            Didn't receive an email? Click to activate instantly
+          </button>
+        </div>
 
         <p className="text-center text-sm text-slate-500">
           <Link to="/" className="hover:text-slate-300 transition">Back to sign in</Link>

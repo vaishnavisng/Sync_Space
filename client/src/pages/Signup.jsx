@@ -10,7 +10,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ message: "", tone: "error" });
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { login, isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -32,6 +32,11 @@ export default function Signup() {
     setLoading(true);
     try {
       const data = await signupRequest(form.username, form.email, form.password);
+      if (data?.token) {
+        login(data.token, data.username);
+        navigate("/home", { replace: true });
+        return;
+      }
       navigate("/verify-otp", { state: { email: data.email, toast: "OTP sent to your email." } });
     } catch (err) {
       setError(err.message);
