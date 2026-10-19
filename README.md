@@ -20,69 +20,10 @@ person's work silently overwriting the other's?
 - **Monaco Editor** — the same editor engine behind VS Code — powers the code
   pane, synced through Yjs.
 
-## Status
 
-🚧 In active development — Week 1 of a 4-week build. See [Issues](../../issues)
-and [Projects](../../projects) for current progress.
 
 ## Tech Stack
 
 `React` · `Node.js` · `Express` · `Socket.io` · `Yjs` · `Konva.js` · `Monaco Editor` · `MongoDB` (persistence, Week 3+) · `JWT` (auth, Week 4)
-## 🚀 Getting Started
-Prerequisites
-Node.js
-A MongoDB instance (local or Atlas)
-1. Clone and set up the backend
-bash
-git clone https://github.com/your-account/your-repository.git
-cd SyncSpace
-npm install
 
-Create a .env file in the project root:
 
-env
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-EMAIL_USER=your_smtp_email
-EMAIL_PASS=your_smtp_app_password
-PORT=5000
-
-For Gmail, `EMAIL_USER` must be the complete Gmail address and `EMAIL_PASS` must
-be a Google **App Password** (not the normal Gmail password). Enable two-step
-verification for that Gmail account, then create an App Password in the Google
-Account security settings. If the app is deployed somewhere that blocks SMTP
-ports (including Render's free tier), configure `RESEND_API_KEY` and a verified
-`EMAIL_FROM` sender instead; the email provider API uses HTTPS.
-
-For a free setup without your own domain, use Brevo: verify your Gmail address
-as a Brevo Sender, then set `EMAIL_PROVIDER=brevo`, `EMAIL_USER` to that
-verified address, and `BREVO_API_KEY` to a Brevo API key. Remove
-`RESEND_API_KEY` from the deployment so an old Resend key cannot be selected.
-
-(Optional) seed a dev user to skip the signup/OTP flow while testing:
-
-#bash
-npm run seed:dev
-
-#Start the backend:
-
-##bash
-npm run dev
-#2. Set up the frontend
-bash
-cd client
-npm install
-
-Create client/.env:
-
-env
-VITE_SOCKET_URL=http://localhost:5000
-VITE_API_URL=http://localhost:5000/api
-
-#Start the frontend:
-
-##bash
-npm run dev
-#3. Open it
-
-#Visit http://localhost:5173, sign up (or log in with your seeded dev user), then Create Room or Join Room from the home screen. You'll land in /workspace/<roomId> — the live split-view whiteboard + code editor.
